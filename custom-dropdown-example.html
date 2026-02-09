@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自定义下拉框示例</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="public/style.css">
+    <style>
+        body {
+            padding: 40px;
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .demo-section {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .demo-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 示例 1: 串口选择下拉框 -->
+    <div class="demo-section">
+        <h2 class="demo-title">🔌 串口选择</h2>
+        <div class="form-group">
+            <label>选择串口设备</label>
+            <div class="custom-dropdown" id="portDropdown">
+                <div class="dropdown-trigger" tabindex="0">
+                    <span class="dropdown-value">选择串口...</span>
+                    <i class="fas fa-chevron-down dropdown-arrow"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <div class="dropdown-search">
+                        <i class="fas fa-search dropdown-search-icon"></i>
+                        <input type="text" placeholder="搜索串口..." class="dropdown-search-input">
+                    </div>
+                    <ul class="dropdown-options">
+                        <li class="dropdown-option" data-value="/dev/cu.usbserial-001">
+                            <i class="fas fa-plug option-icon"></i>
+                            <div class="option-text">
+                                <div>/dev/cu.usbserial-001</div>
+                                <div class="option-description">USB Serial Port</div>
+                            </div>
+                            <span class="option-badge recommended">推荐</span>
+                        </li>
+                        <li class="dropdown-option" data-value="/dev/cu.usbserial-002">
+                            <i class="fas fa-plug option-icon"></i>
+                            <div class="option-text">
+                                <div>/dev/cu.usbserial-002</div>
+                                <div class="option-description">USB Serial Port</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option" data-value="/dev/cu.Bluetooth-Incoming-Port">
+                            <i class="fas fa-bluetooth option-icon"></i>
+                            <div class="option-text">
+                                <div>/dev/cu.Bluetooth-Incoming-Port</div>
+                                <div class="option-description">Bluetooth Port</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option" data-value="COM3">
+                            <i class="fas fa-microchip option-icon"></i>
+                            <div class="option-text">
+                                <div>COM3</div>
+                                <div class="option-description">通信端口</div>
+                            </div>
+                            <span class="option-badge new">新</span>
+                        </li>
+                        <li class="dropdown-option" data-value="COM4">
+                            <i class="fas fa-microchip option-icon"></i>
+                            <div class="option-text">
+                                <div>COM4</div>
+                                <div class="option-description">通信端口</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 示例 2: 波特率下拉框 -->
+    <div class="demo-section">
+        <h2 class="demo-title">⚡ 波特率选择</h2>
+        <div class="form-group">
+            <label>选择通信速率</label>
+            <div class="custom-dropdown" id="baudDropdown">
+                <div class="dropdown-trigger" tabindex="0">
+                    <span class="dropdown-value">115200 bps（推荐）</span>
+                    <i class="fas fa-chevron-down dropdown-arrow"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <ul class="dropdown-options">
+                        <li class="dropdown-option" data-value="9600">
+                            <i class="fas fa-tachometer-alt option-icon"></i>
+                            <div class="option-text">
+                                <div>9600 bps</div>
+                                <div class="option-description">低速调试</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option" data-value="38400">
+                            <i class="fas fa-tachometer-alt option-icon"></i>
+                            <div class="option-text">
+                                <div>38400 bps</div>
+                                <div class="option-description">标准速度</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option" data-value="57600">
+                            <i class="fas fa-tachometer-alt option-icon"></i>
+                            <div class="option-text">
+                                <div>57600 bps</div>
+                                <div class="option-description">高速</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option selected" data-value="115200">
+                            <i class="fas fa-tachometer-alt option-icon"></i>
+                            <div class="option-text">
+                                <div>115200 bps</div>
+                                <div class="option-description">推荐速度</div>
+                            </div>
+                            <span class="option-badge recommended">推荐</span>
+                        </li>
+                        <li class="dropdown-option" data-value="230400">
+                            <i class="fas fa-tachometer-alt option-icon"></i>
+                            <div class="option-text">
+                                <div>230400 bps</div>
+                                <div class="option-description">超高速</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option" data-value="460800">
+                            <i class="fas fa-tachometer-alt option-icon"></i>
+                            <div class="option-text">
+                                <div>460800 bps</div>
+                                <div class="option-description">极高速</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option" data-value="921600">
+                            <i class="fas fa-bolt option-icon"></i>
+                            <div class="option-text">
+                                <div>921600 bps</div>
+                                <div class="option-description">最大速度</div>
+                            </div>
+                            <span class="option-badge">最快</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 示例 3: 日志级别下拉框 -->
+    <div class="demo-section">
+        <h2 class="demo-title">📊 日志级别</h2>
+        <div class="form-group">
+            <label>选择最低显示级别</label>
+            <div class="custom-dropdown" id="levelDropdown">
+                <div class="dropdown-trigger" tabindex="0">
+                    <span class="dropdown-value">INFO 及以上</span>
+                    <i class="fas fa-chevron-down dropdown-arrow"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <ul class="dropdown-options">
+                        <li class="dropdown-option" data-value="0">
+                            <div class="dropdown-checkbox"><i class="fas fa-check"></i></div>
+                            <div class="option-text">
+                                <div>全部级别</div>
+                                <div class="option-description">显示所有日志</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option" data-value="1">
+                            <div class="dropdown-checkbox"><i class="fas fa-check"></i></div>
+                            <div class="option-text">
+                                <div>DEBUG 及以上</div>
+                                <div class="option-description">隐藏 VERBOSE</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option selected" data-value="2">
+                            <div class="dropdown-checkbox"><i class="fas fa-check"></i></div>
+                            <div class="option-text">
+                                <div>INFO 及以上</div>
+                                <div class="option-description">隐藏 DEBUG、VERBOSE</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option" data-value="3">
+                            <div class="dropdown-checkbox"><i class="fas fa-check"></i></div>
+                            <div class="option-text">
+                                <div>WARN 及以上</div>
+                                <div class="option-description">仅显示警告和错误</div>
+                            </div>
+                        </li>
+                        <li class="dropdown-option" data-value="4">
+                            <div class="dropdown-checkbox"><i class="fas fa-check"></i></div>
+                            <div class="option-text">
+                                <div>仅 ERROR</div>
+                                <div class="option-description">只显示错误</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 自定义下拉框类
+        class CustomDropdown {
+            constructor(element, options = {}) {
+                this.dropdown = element;
+                this.trigger = element.querySelector('.dropdown-trigger');
+                this.menu = element.querySelector('.dropdown-menu');
+                this.options = element.querySelectorAll('.dropdown-option');
+                this.valueElement = element.querySelector('.dropdown-value');
+                this.searchInput = element.querySelector('.dropdown-search-input');
+
+                this.isOpen = false;
+                this.selectedValue = null;
+                this.onSelect = options.onSelect || (() => {});
+
+                this.init();
+            }
+
+            init() {
+                // 点击触发器
+                this.trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggle();
+                });
+
+                // 键盘支持
+                this.trigger.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.toggle();
+                    } else if (e.key === 'Escape') {
+                        this.close();
+                    }
+                });
+
+                // 选项点击
+                this.options.forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.selectOption(option);
+                    });
+
+                    option.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            this.selectOption(option);
+                        }
+                    });
+                });
+
+                // 搜索功能
+                if (this.searchInput) {
+                    this.searchInput.addEventListener('input', (e) => {
+                        this.filterOptions(e.target.value);
+                    });
+
+                    this.searchInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                            e.target.value = '';
+                            this.filterOptions('');
+                        }
+                    });
+                }
+
+                // 点击外部关闭
+                document.addEventListener('click', (e) => {
+                    if (!this.dropdown.contains(e.target)) {
+                        this.close();
+                    }
+                });
+
+                // 设置初始选中值
+                const selectedOption = this.dropdown.querySelector('.dropdown-option.selected');
+                if (selectedOption) {
+                    this.selectOption(selectedOption, false);
+                }
+            }
+
+            toggle() {
+                this.isOpen ? this.close() : this.open();
+            }
+
+            open() {
+                if (this.isOpen) return;
+                this.isOpen = true;
+                this.trigger.classList.add('active');
+                this.menu.classList.add('show');
+
+                // 聚焦搜索框
+                if (this.searchInput) {
+                    setTimeout(() => this.searchInput.focus(), 100);
+                }
+            }
+
+            close() {
+                if (!this.isOpen) return;
+                this.isOpen = false;
+                this.trigger.classList.remove('active');
+                this.menu.classList.remove('show');
+
+                // 清空搜索
+                if (this.searchInput) {
+                    this.searchInput.value = '';
+                    this.filterOptions('');
+                }
+            }
+
+            selectOption(option, update = true) {
+                // 移除其他选项的选中状态
+                this.options.forEach(opt => opt.classList.remove('selected'));
+
+                // 添加选中状态
+                option.classList.add('selected');
+
+                // 更新显示值
+                const value = option.dataset.value;
+                const text = option.querySelector('.option-text > div').textContent;
+                this.valueElement.textContent = text;
+                this.selectedValue = value;
+
+                // 关闭下拉框
+                if (update) {
+                    this.close();
+                    this.onSelect(value, text, option);
+                }
+            }
+
+            filterOptions(query) {
+                const lowerQuery = query.toLowerCase();
+
+                this.options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    if (text.includes(lowerQuery)) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+            }
+
+            setValue(value) {
+                const option = this.dropdown.querySelector(`.dropdown-option[data-value="${value}"]`);
+                if (option) {
+                    this.selectOption(option, false);
+                }
+            }
+
+            getValue() {
+                return this.selectedValue;
+            }
+        }
+
+        // 初始化所有下拉框
+        document.addEventListener('DOMContentLoaded', () => {
+            // 串口下拉框
+            new CustomDropdown(document.getElementById('portDropdown'), {
+                onSelect: (value, text) => {
+                    console.log('选中串口:', value, text);
+                }
+            });
+
+            // 波特率下拉框
+            new CustomDropdown(document.getElementById('baudDropdown'), {
+                onSelect: (value, text) => {
+                    console.log('选中波特率:', value, text);
+                }
+            });
+
+            // 日志级别下拉框
+            new CustomDropdown(document.getElementById('levelDropdown'), {
+                onSelect: (value, text) => {
+                    console.log('选中级别:', value, text);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

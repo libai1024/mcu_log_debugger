@@ -1,0 +1,16 @@
+{
+  "name": "mcu-log-debugger",
+  "version": "1.0.0",
+  "description": "MCU Log Debugger - 串口日志调试助手 (Tauri版)",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.5.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.0"
+  }
+}
