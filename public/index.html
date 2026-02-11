@@ -109,7 +109,6 @@
                                     <option value="even">偶</option>
                                     <option value="odd">奇</option>
                                 </select>
-                                <i class="fas fa-chevron-down select-arrow"></i>
                             </div>
                         </div>
                     </div>
@@ -132,27 +131,39 @@
                             <i class="fas fa-layer-group"></i>
                             <span>日志级别</span>
                         </label>
-                        <div class="level-filter-group">
-                            <label class="level-checkbox">
-                                <input type="checkbox" id="levelVerbose" value="0" checked>
-                                <span class="level-badge" style="background: var(--level-verbose-badge); color: var(--level-verbose-fg);">VERBOSE</span>
-                            </label>
-                            <label class="level-checkbox">
-                                <input type="checkbox" id="levelDebug" value="1" checked>
-                                <span class="level-badge" style="background: var(--level-debug-badge); color: var(--level-debug-fg);">DEBUG</span>
-                            </label>
-                            <label class="level-checkbox">
-                                <input type="checkbox" id="levelInfo" value="2" checked>
-                                <span class="level-badge" style="background: var(--level-info-badge); color: var(--level-info-fg);">INFO</span>
-                            </label>
-                            <label class="level-checkbox">
-                                <input type="checkbox" id="levelWarn" value="3" checked>
-                                <span class="level-badge" style="background: var(--level-warn-badge); color: var(--level-warn-fg);">WARN</span>
-                            </label>
-                            <label class="level-checkbox">
-                                <input type="checkbox" id="levelError" value="4" checked>
-                                <span class="level-badge" style="background: var(--level-error-badge); color: var(--level-error-fg);">ERROR</span>
-                            </label>
+                        <div class="level-multiselect" id="levelMultiselect">
+                            <div class="multiselect-trigger" id="levelMultiselectTrigger">
+                                <span class="multiselect-text" id="levelMultiselectText">全部级别</span>
+                                <i class="fas fa-chevron-down multiselect-arrow"></i>
+                            </div>
+                            <div class="multiselect-dropdown" id="levelMultiselectDropdown">
+                                <div class="multiselect-header">
+                                    <button type="button" class="multiselect-action" id="levelSelectAll">全选</button>
+                                    <button type="button" class="multiselect-action" id="levelDeselectAll">清空</button>
+                                </div>
+                                <div class="multiselect-options">
+                                    <label class="multiselect-option">
+                                        <input type="checkbox" id="levelVerbose" value="0" checked>
+                                        <span class="level-badge" style="background: var(--level-verbose-badge); color: var(--level-verbose-fg);">VERBOSE</span>
+                                    </label>
+                                    <label class="multiselect-option">
+                                        <input type="checkbox" id="levelDebug" value="1" checked>
+                                        <span class="level-badge" style="background: var(--level-debug-badge); color: var(--level-debug-fg);">DEBUG</span>
+                                    </label>
+                                    <label class="multiselect-option">
+                                        <input type="checkbox" id="levelInfo" value="2" checked>
+                                        <span class="level-badge" style="background: var(--level-info-badge); color: var(--level-info-fg);">INFO</span>
+                                    </label>
+                                    <label class="multiselect-option">
+                                        <input type="checkbox" id="levelWarn" value="3" checked>
+                                        <span class="level-badge" style="background: var(--level-warn-badge); color: var(--level-warn-fg);">WARN</span>
+                                    </label>
+                                    <label class="multiselect-option">
+                                        <input type="checkbox" id="levelError" value="4" checked>
+                                        <span class="level-badge" style="background: var(--level-error-badge); color: var(--level-error-fg);">ERROR</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -163,13 +174,11 @@
                             <span>关键字搜索</span>
                         </label>
                         <div class="search-box">
-                            <div class="search-input-wrapper">
+                            <!-- 搜索输入行 -->
+                            <div class="search-input-row">
                                 <div class="input-with-icon input-with-clear input-with-history">
                                     <i class="fas fa-search input-icon"></i>
                                     <input type="text" id="keywordFilter" placeholder="搜索日志..." class="search-input" autocomplete="off">
-                                    <button type="button" class="search-history-btn" id="searchHistoryBtn" title="搜索历史">
-                                        <i class="fas fa-history"></i>
-                                    </button>
                                     <button type="button" class="search-clear-btn" id="searchClearBtn" title="清空">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -183,40 +192,39 @@
                                         <div class="history-list" id="historyList"></div>
                                     </div>
                                 </div>
-                                <button class="btn-search" id="searchBtn" title="搜索">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                            <div class="search-options-row">
-                                <div class="search-options">
-                                    <label class="checkbox-inline" title="正则表达式">
-                                        <input type="checkbox" id="useRegex">
-                                        <i class="fas fa-check check-icon"></i>
-                                        <span>.*</span>
-                                    </label>
-                                    <label class="checkbox-inline" title="区分大小写">
+                                <!-- 搜索选项按钮组 -->
+                                <div class="search-options-inline">
+                                    <label class="search-option-btn" title="区分大小写 (Alt+C)">
                                         <input type="checkbox" id="caseSensitive">
-                                        <i class="fas fa-check check-icon"></i>
-                                        <span>Aa</span>
+                                        <span class="option-icon">Aa</span>
                                     </label>
-                                    <label class="checkbox-inline" title="全词匹配">
+                                    <label class="search-option-btn" title="全词匹配 (Alt+W)">
                                         <input type="checkbox" id="wholeWord">
-                                        <i class="fas fa-check check-icon"></i>
-                                        <span>ab|</span>
+                                        <span class="option-icon">ab|</span>
+                                    </label>
+                                    <label class="search-option-btn" title="正则表达式 (Alt+R)">
+                                        <input type="checkbox" id="useRegex">
+                                        <span class="option-icon">.*</span>
                                     </label>
                                 </div>
-                                <div class="search-count-wrapper">
+                            </div>
+
+                            <!-- 搜索导航行 -->
+                            <div class="search-nav-row">
+                                <div class="search-count-display">
                                     <span class="search-count" id="searchCount">0/0</span>
                                 </div>
+                                <div class="search-nav-buttons">
+                                    <button class="btn-nav-icon" id="searchPrev" title="上一个 (Shift+Enter)">
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                    <button class="btn-nav-icon" id="searchNext" title="下一个 (Enter)">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="search-nav-row">
-                                <button class="btn-nav" id="searchPrev" title="上一个 (Shift+Enter)">
-                                    <i class="fas fa-chevron-up"></i>
-                                </button>
-                                <button class="btn-nav" id="searchNext" title="下一个 (Enter)">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
+
+                            <!-- 正则快捷方式 -->
                             <div class="regex-shortcuts" id="regexShortcuts" style="display: none;">
                                 <button class="regex-btn" data-pattern=".*error.*" title="包含 error">.*error.*</button>
                                 <button class="regex-btn" data-pattern="^\[ERROR\]" title="ERROR 开头">^[ERROR]</button>
@@ -384,7 +392,6 @@
                     <div class="qsearch" id="quickSearch">
                         <div class="qsearch__icon"><i class="fas fa-search"></i></div>
                         <input type="search" id="statSearchInput" class="qsearch__input" placeholder="搜索日志..." autocomplete="off">
-                        <button type="button" class="qsearch__btn qsearch__btn--history" id="statSearchHistoryBtn" title="搜索历史"><i class="fas fa-history"></i></button>
                         <button type="button" class="qsearch__btn qsearch__btn--clear" id="statSearchClear" title="清空"><i class="fas fa-times"></i></button>
                         <span class="qsearch__divider"></span>
                         <button type="button" class="qsearch__btn qsearch__btn--nav" id="statSearchPrev" title="上一个"><i class="fas fa-chevron-up"></i></button>

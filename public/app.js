@@ -437,7 +437,6 @@ const elements = {
     wholeWord: document.getElementById('wholeWord'),
     regexShortcuts: document.getElementById('regexShortcuts'),
     searchClearBtn: document.getElementById('searchClearBtn'),
-    searchHistoryBtn: document.getElementById('searchHistoryBtn'),
     searchHistoryDropdown: document.getElementById('searchHistoryDropdown'),
     historyList: document.getElementById('historyList'),
     historyClearBtn: document.getElementById('historyClearBtn'),
@@ -454,7 +453,6 @@ const elements = {
     // Stats bar search
     statSearchInput: document.getElementById('statSearchInput'),
     statSearchClear: document.getElementById('statSearchClear'),
-    statSearchHistoryBtn: document.getElementById('statSearchHistoryBtn'),
     statSearchHistoryDropdown: document.getElementById('statSearchHistoryDropdown'),
     statHistoryList: document.getElementById('statHistoryList'),
     statHistoryClearBtn: document.getElementById('statHistoryClearBtn'),
@@ -2095,10 +2093,7 @@ function setupEventListeners() {
         elements.keywordFilter.focus();
     });
 
-    elements.searchHistoryBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleSearchHistoryDropdown();
-    });
+    // 历史记录按钮已删除，点击输入框时自动显示历史记录（通过focus事件）
 
     elements.historyClearBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2172,10 +2167,7 @@ function setupEventListeners() {
         elements.statSearchInput.focus();
     });
 
-    elements.statSearchHistoryBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleStatSearchHistoryDropdown();
-    });
+    // 历史记录按钮已删除，点击输入框时自动显示历史记录（通过focus事件）
 
     elements.statHistoryClearBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2423,12 +2415,9 @@ function initDropdowns() {
     dropdowns.parity = new CustomDropdown(elements.parity, {
         showCheck: true,
         formatItem: (opt) => {
-            const icons = { 'none': 'fa-ban', 'even': 'fa-equals', 'odd': 'fa-wave-square' };
-            const icon = icons[opt.value] || 'fa-circle';
-            const labels = { 'none': '无校验', 'even': '偶校验', 'odd': '奇校验' };
+            const labels = { 'none': '无', 'even': '偶', 'odd': '奇' };
             const label = labels[opt.value] || opt.textContent;
             return `<span class="item-check"><i class="fas fa-check"></i></span>
-                    <i class="fas ${icon}" style="color:var(--text-hint);font-size:10px;width:14px;text-align:center;flex-shrink:0;"></i>
                     <span class="item-text">${label}</span>`;
         },
     });
@@ -2591,3 +2580,100 @@ function setupSettingsEvents() {
 
 // 在 setupEventListeners 中调用
 setupSettingsEvents();
+
+// ========== Level Multi-select Dropdown ==========
+function setupLevelMultiselect() {
+    const multiselect = document.getElementById('levelMultiselect');
+    const trigger = document.getElementById('levelMultiselectTrigger');
+    const dropdown = document.getElementById('levelMultiselectDropdown');
+    const text = document.getElementById('levelMultiselectText');
+    const selectAllBtn = document.getElementById('levelSelectAll');
+    const deselectAllBtn = document.getElementById('levelDeselectAll');
+    const checkboxes = [
+        elements.levelVerbose,
+        elements.levelDebug,
+        elements.levelInfo,
+        elements.levelWarn,
+        elements.levelError
+    ];
+
+    // 更新显示文本
+    function updateText() {
+        const checked = checkboxes.filter(cb => cb.checked);
+        if (checked.length === 0) {
+            text.textContent = '未选择级别';
+            text.style.color = 'var(--text-hint)';
+        } else if (checked.length === checkboxes.length) {
+            text.textContent = '全部级别';
+            text.style.color = 'var(--text-primary)';
+        } else {
+            const labels = checked.map(cb => {
+                const label = cb.parentElement.querySelector('.level-badge').textContent;
+                return label;
+            });
+            text.textContent = labels.join(', ');
+            text.style.color = 'var(--text-primary)';
+        }
+    }
+
+    // 切换下拉框
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        multiselect.classList.toggle('open');
+    });
+
+    // 点击外部关闭
+    document.addEventListener('click', (e) => {
+        if (!multiselect.contains(e.target)) {
+            multiselect.classList.remove('open');
+        }
+    });
+
+    // 全选
+    selectAllBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        checkboxes.forEach(cb => {
+            if (!cb.checked) {
+                cb.checked = true;
+                cb.dispatchEvent(new Event('change'));
+            }
+        });
+        updateText();
+    });
+
+    // 清空
+    deselectAllBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                cb.checked = false;
+                cb.dispatchEvent(new Event('change'));
+            }
+        });
+        updateText();
+    });
+
+    // 选项点击
+    checkboxes.forEach(checkbox => {
+        const option = checkbox.parentElement;
+
+        // 点击选项切换复选框
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
+            updateText();
+        });
+
+        // 监听复选框变化
+        checkbox.addEventListener('change', () => {
+            updateText();
+        });
+    });
+
+    // 初始化文本
+    updateText();
+}
+
+// 初始化多选下拉框
+setupLevelMultiselect();
