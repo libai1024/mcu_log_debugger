@@ -43,7 +43,6 @@
                         <label>
                             <i class="fas fa-usb"></i>
                             <span>串口</span>
-                            <span class="form-hint" title="选择要连接的串口设备">?</span>
                         </label>
                         <div class="port-select-wrapper">
                             <div class="custom-select" id="portSelectWrapper">
@@ -66,14 +65,13 @@
                         <label>
                             <i class="fas fa-tachometer-alt"></i>
                             <span>波特率</span>
-                            <span class="form-hint" title="必须与MCU配置相同">?</span>
                         </label>
                         <div class="custom-select">
                             <select id="baudRate" aria-label="选择波特率">
                                 <option value="9600">9600 bps</option>
                                 <option value="38400">38400 bps</option>
                                 <option value="57600">57600 bps</option>
-                                <option value="115200" selected>115200 bps (推荐)</option>
+                                <option value="115200" selected>115200 bps</option>
                                 <option value="230400">230400 bps</option>
                                 <option value="460800">460800 bps</option>
                                 <option value="921600">921600 bps</option>
@@ -133,17 +131,28 @@
                         <label>
                             <i class="fas fa-layer-group"></i>
                             <span>日志级别</span>
-                            <span class="form-hint" title="只显示该级别及以上的日志">?</span>
                         </label>
-                        <div class="custom-select">
-                            <select id="levelFilter" aria-label="日志级别">
-                                <option value="0">全部级别</option>
-                                <option value="1">DEBUG 及以上</option>
-                                <option value="2" selected>INFO 及以上</option>
-                                <option value="3">WARN 及以上</option>
-                                <option value="4">仅 ERROR</option>
-                            </select>
-                            <i class="fas fa-chevron-down select-arrow"></i>
+                        <div class="level-filter-group">
+                            <label class="level-checkbox">
+                                <input type="checkbox" id="levelVerbose" value="0" checked>
+                                <span class="level-badge" style="background: var(--level-verbose-badge); color: var(--level-verbose-fg);">VERBOSE</span>
+                            </label>
+                            <label class="level-checkbox">
+                                <input type="checkbox" id="levelDebug" value="1" checked>
+                                <span class="level-badge" style="background: var(--level-debug-badge); color: var(--level-debug-fg);">DEBUG</span>
+                            </label>
+                            <label class="level-checkbox">
+                                <input type="checkbox" id="levelInfo" value="2" checked>
+                                <span class="level-badge" style="background: var(--level-info-badge); color: var(--level-info-fg);">INFO</span>
+                            </label>
+                            <label class="level-checkbox">
+                                <input type="checkbox" id="levelWarn" value="3" checked>
+                                <span class="level-badge" style="background: var(--level-warn-badge); color: var(--level-warn-fg);">WARN</span>
+                            </label>
+                            <label class="level-checkbox">
+                                <input type="checkbox" id="levelError" value="4" checked>
+                                <span class="level-badge" style="background: var(--level-error-badge); color: var(--level-error-fg);">ERROR</span>
+                            </label>
                         </div>
                     </div>
 
@@ -183,25 +192,37 @@
                                     <label class="checkbox-inline" title="正则表达式">
                                         <input type="checkbox" id="useRegex">
                                         <i class="fas fa-check check-icon"></i>
-                                        <span>正则</span>
+                                        <span>.*</span>
                                     </label>
                                     <label class="checkbox-inline" title="区分大小写">
                                         <input type="checkbox" id="caseSensitive">
                                         <i class="fas fa-check check-icon"></i>
-                                        <span>区分大小写</span>
+                                        <span>Aa</span>
+                                    </label>
+                                    <label class="checkbox-inline" title="全词匹配">
+                                        <input type="checkbox" id="wholeWord">
+                                        <i class="fas fa-check check-icon"></i>
+                                        <span>ab|</span>
                                     </label>
                                 </div>
-                                <div class="search-info">
-                                    <span class="search-count" id="searchCount"></span>
+                                <div class="search-count-wrapper">
+                                    <span class="search-count" id="searchCount">0/0</span>
                                 </div>
-                                <div class="search-nav">
-                                    <button class="btn-small" id="searchPrev" title="上一个">
-                                        <i class="fas fa-chevron-up"></i> 上一个
-                                    </button>
-                                    <button class="btn-small" id="searchNext" title="下一个">
-                                        <i class="fas fa-chevron-down"></i> 下一个
-                                    </button>
-                                </div>
+                            </div>
+                            <div class="search-nav-row">
+                                <button class="btn-nav" id="searchPrev" title="上一个 (Shift+Enter)">
+                                    <i class="fas fa-chevron-up"></i>
+                                </button>
+                                <button class="btn-nav" id="searchNext" title="下一个 (Enter)">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="regex-shortcuts" id="regexShortcuts" style="display: none;">
+                                <button class="regex-btn" data-pattern=".*error.*" title="包含 error">.*error.*</button>
+                                <button class="regex-btn" data-pattern="^\[ERROR\]" title="ERROR 开头">^[ERROR]</button>
+                                <button class="regex-btn" data-pattern="\d{2}:\d{2}:\d{2}" title="时间格式">HH:MM:SS</button>
+                                <button class="regex-btn" data-pattern="0x[0-9A-Fa-f]+" title="十六进制">0x...</button>
+                                <button class="regex-btn" data-pattern="\b\d+\b" title="纯数字">\d+</button>
                             </div>
                         </div>
 

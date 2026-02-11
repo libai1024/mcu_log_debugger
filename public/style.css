@@ -450,6 +450,44 @@ textarea:focus {
     align-items: center;
 }
 
+/* 级别筛选复选框组 */
+.level-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.level-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast);
+}
+
+.level-checkbox:hover {
+    background: var(--bg-hover);
+}
+
+.level-checkbox input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
+.level-checkbox .level-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    flex: 1;
+    text-align: center;
+}
+
 .custom-select select {
     width: 100%;
     padding: 5px 28px 5px 10px;
@@ -1261,14 +1299,92 @@ button:disabled {
 /* Search options row */
 .search-options-row {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding-top: 4px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 6px;
 }
 
 .search-options {
     display: flex;
-    gap: 10px;
+    gap: 4px;
+}
+
+.search-count-wrapper {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    min-width: 50px;
+    justify-content: center;
+}
+
+.search-count-wrapper .search-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+}
+
+.search-nav-row {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.btn-nav {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-nav:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary);
+}
+
+.btn-nav:active {
+    transform: scale(0.98);
+}
+
+.regex-shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 6px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.regex-btn {
+    padding: 3px 8px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.regex-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-1px);
 }
 
 .checkbox-inline {

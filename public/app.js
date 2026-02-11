@@ -428,8 +428,14 @@ const elements = {
     connectBtn: document.getElementById('connectBtn'),
 
     // Filters
-    levelFilter: document.getElementById('levelFilter'),
+    levelVerbose: document.getElementById('levelVerbose'),
+    levelDebug: document.getElementById('levelDebug'),
+    levelInfo: document.getElementById('levelInfo'),
+    levelWarn: document.getElementById('levelWarn'),
+    levelError: document.getElementById('levelError'),
     keywordFilter: document.getElementById('keywordFilter'),
+    wholeWord: document.getElementById('wholeWord'),
+    regexShortcuts: document.getElementById('regexShortcuts'),
     searchClearBtn: document.getElementById('searchClearBtn'),
     searchHistoryBtn: document.getElementById('searchHistoryBtn'),
     searchHistoryDropdown: document.getElementById('searchHistoryDropdown'),
@@ -748,6 +754,7 @@ function performSearch() {
 
     const useRegex = elements.useRegex.checked;
     const caseSensitive = elements.caseSensitive.checked;
+    const wholeWord = elements.wholeWord?.checked || false;
     searchMatches = [];
 
     filteredEntries.forEach((entry, index) => {
@@ -758,11 +765,25 @@ function performSearch() {
             try {
                 const flags = caseSensitive ? 'g' : 'gi';
                 matched = new RegExp(keyword, flags).test(text);
-            } catch {
+            } catch (e) {
+                // 正则表达式错误，显示提示
+                showStatus(`正则表达式错误: ${e.message}`, 'error');
                 matched = caseSensitive ? text.includes(keyword) : text.toLowerCase().includes(keyword.toLowerCase());
             }
         } else {
-            matched = caseSensitive ? text.includes(keyword) : text.toLowerCase().includes(keyword.toLowerCase());
+            // 全词匹配
+            if (wholeWord) {
+                const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const pattern = `\\b${escaped}\\b`;
+                const flags = caseSensitive ? 'g' : 'gi';
+                try {
+                    matched = new RegExp(pattern, flags).test(text);
+                } catch {
+                    matched = caseSensitive ? text.includes(keyword) : text.toLowerCase().includes(keyword.toLowerCase());
+                }
+            } else {
+                matched = caseSensitive ? text.includes(keyword) : text.toLowerCase().includes(keyword.toLowerCase());
+            }
         }
 
         if (matched) searchMatches.push(index);
@@ -821,6 +842,7 @@ function highlightSearch(text, entryIndex) {
 
     const useRegex = elements.useRegex.checked;
     const caseSensitive = elements.caseSensitive.checked;
+    const wholeWord = elements.wholeWord?.checked || false;
     
     // 判断当前条目是否是当前搜索匹配项
     const isCurrentMatch = searchMatches.length > 0 && 
@@ -833,7 +855,9 @@ function highlightSearch(text, entryIndex) {
             regex = new RegExp(`(${keyword})`, caseSensitive ? 'g' : 'gi');
         } else {
             const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            regex = new RegExp(`(${escaped})`, caseSensitive ? 'g' : 'gi');
+            // 全词匹配
+            const pattern = wholeWord ? `(\\b${escaped}\\b)` : `(${escaped})`;
+            regex = new RegExp(pattern, caseSensitive ? 'g' : 'gi');
         }
         
         // 如果是当前匹配项，使用特殊高亮
@@ -1043,8 +1067,12 @@ function updateActiveFiltersDisplay() {
 function removeFilter(type) {
     switch (type) {
         case 'level':
-            elements.levelFilter.value = 0;
-            if (dropdowns.levelFilter) dropdowns.levelFilter.refresh();
+            // 选中所有级别
+            if (elements.levelVerbose) elements.levelVerbose.checked = true;
+            if (elements.levelDebug) elements.levelDebug.checked = true;
+            if (elements.levelInfo) elements.levelInfo.checked = true;
+            if (elements.levelWarn) elements.levelWarn.checked = true;
+            if (elements.levelError) elements.levelError.checked = true;
             break;
         case 'keyword':
             elements.keywordFilter.value = '';
@@ -1060,8 +1088,13 @@ function removeFilter(type) {
 }
 
 function clearAllFiltersAction() {
-    elements.levelFilter.value = 0;
-    if (dropdowns.levelFilter) dropdowns.levelFilter.refresh();
+    // 选中所有级别
+    if (elements.levelVerbose) elements.levelVerbose.checked = true;
+    if (elements.levelDebug) elements.levelDebug.checked = true;
+    if (elements.levelInfo) elements.levelInfo.checked = true;
+    if (elements.levelWarn) elements.levelWarn.checked = true;
+    if (elements.levelError) elements.levelError.checked = true;
+    
     elements.keywordFilter.value = '';
     elements.keywordFilter.closest('.input-with-clear')?.classList.remove('has-value');
     if (elements.statSearchInput) elements.statSearchInput.value = '';
@@ -1269,14 +1302,22 @@ function scrollToBottom() {
 
 // ========== Log Table Rendering ==========
 function renderLogTable() {
-    const minLevel = parseInt(elements.levelFilter.value);
     const keyword = elements.keywordFilter.value.toLowerCase();
     const selectedTags = new Set(
         Array.from(elements.tagList.querySelectorAll('input:checked')).map(cb => cb.value)
     );
+    
+    // 获取选中的级别
+    const selectedLevels = new Set();
+    if (elements.levelVerbose?.checked) selectedLevels.add(0);
+    if (elements.levelDebug?.checked) selectedLevels.add(1);
+    if (elements.levelInfo?.checked) selectedLevels.add(2);
+    if (elements.levelWarn?.checked) selectedLevels.add(3);
+    if (elements.levelError?.checked) selectedLevels.add(4);
 
     filteredEntries = allEntries.filter(entry => {
-        if (entry.level < minLevel) return false;
+        // 级别过滤：只显示选中的级别
+        if (selectedLevels.size > 0 && !selectedLevels.has(entry.level)) return false;
         if (selectedTags.size > 0 && !selectedTags.has(entry.tag)) return false;
         if (keyword && !entry.rawLine.toLowerCase().includes(keyword)) return false;
         return true;
@@ -1651,8 +1692,12 @@ function setupContextMenu() {
         if (!contextMenuTarget) return;
         const entry = allEntries.find(e => e.id === contextMenuTarget.dataset.id);
         if (entry) {
-            elements.levelFilter.value = entry.level;
-            if (dropdowns.levelFilter) dropdowns.levelFilter.refresh();
+            // 只选中该级别
+            if (elements.levelVerbose) elements.levelVerbose.checked = (entry.level === 0);
+            if (elements.levelDebug) elements.levelDebug.checked = (entry.level === 1);
+            if (elements.levelInfo) elements.levelInfo.checked = (entry.level === 2);
+            if (elements.levelWarn) elements.levelWarn.checked = (entry.level === 3);
+            if (elements.levelError) elements.levelError.checked = (entry.level === 4);
             renderLogTable();
             updateActiveFiltersDisplay();
             showStatus(`已过滤级别: ${entry.levelName}`, 'info');
@@ -2002,10 +2047,14 @@ function setupEventListeners() {
     });
     elements.refreshPorts.addEventListener('click', listPorts);
 
-    // Level filter
-    elements.levelFilter.addEventListener('change', () => {
-        renderLogTable();
-        updateActiveFiltersDisplay();
+    // Level filter checkboxes
+    [elements.levelVerbose, elements.levelDebug, elements.levelInfo, elements.levelWarn, elements.levelError].forEach(checkbox => {
+        if (checkbox) {
+            checkbox.addEventListener('change', () => {
+                renderLogTable();
+                updateActiveFiltersDisplay();
+            });
+        }
     });
 
     // Tag list changes
@@ -2063,8 +2112,31 @@ function setupEventListeners() {
         if (!e.target.closest('.qsearch')) hideStatSearchHistory();
     });
 
-    elements.useRegex.addEventListener('change', performSearch);
+    elements.useRegex.addEventListener('change', () => {
+        // 切换正则快捷按钮显示
+        if (elements.regexShortcuts) {
+            elements.regexShortcuts.style.display = elements.useRegex.checked ? 'flex' : 'none';
+        }
+        performSearch();
+    });
     elements.caseSensitive.addEventListener('change', performSearch);
+    if (elements.wholeWord) {
+        elements.wholeWord.addEventListener('change', performSearch);
+    }
+    
+    // 正则快捷按钮
+    if (elements.regexShortcuts) {
+        elements.regexShortcuts.addEventListener('click', (e) => {
+            const btn = e.target.closest('.regex-btn');
+            if (btn) {
+                const pattern = btn.dataset.pattern;
+                elements.keywordFilter.value = pattern;
+                elements.useRegex.checked = true;
+                elements.regexShortcuts.style.display = 'flex';
+                performSearch();
+            }
+        });
+    }
     elements.searchBtn.addEventListener('click', () => {
         if (elements.keywordFilter.value.trim()) addSearchToHistory(elements.keywordFilter.value);
         performSearch();
@@ -2361,22 +2433,7 @@ function initDropdowns() {
         },
     });
 
-    // Level filter dropdown
-    dropdowns.levelFilter = new CustomDropdown(elements.levelFilter, {
-        showCheck: false,
-        formatItem: (opt) => {
-            const levelColors = {
-                '0': { icon: 'fa-layer-group', color: 'var(--text-secondary)', label: '全部级别' },
-                '1': { icon: 'fa-bug', color: 'var(--level-debug-fg)', label: 'DEBUG 及以上' },
-                '2': { icon: 'fa-info-circle', color: 'var(--level-info-fg)', label: 'INFO 及以上' },
-                '3': { icon: 'fa-exclamation-triangle', color: 'var(--level-warn-fg)', label: 'WARN 及以上' },
-                '4': { icon: 'fa-times-circle', color: 'var(--level-error-fg)', label: '仅 ERROR' },
-            };
-            const cfg = levelColors[opt.value] || levelColors['0'];
-            return `<i class="fas ${cfg.icon}" style="color:${cfg.color};font-size:11px;width:16px;text-align:center;flex-shrink:0;"></i>
-                    <span class="item-text">${cfg.label}</span>`;
-        },
-    });
+    // Level filter dropdown - 已移除，改为复选框
     
     // Export format dropdown (in settings modal)
     if (elements.defaultExportFormat) {
