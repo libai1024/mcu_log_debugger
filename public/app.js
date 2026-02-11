@@ -40,6 +40,40 @@ let tagFilterInitialized = false; // 跟踪Tag过滤是否已初始化
 let savePath = ''; // 保存路径
 let defaultExportFormat = 'txt'; // 默认导出格式
 let autoSaveIntervalSeconds = 30; // 自动保存间隔（秒）
+let displayMode = 'log'; // 显示模式: 'log' | 'hex' | 'normal'
+let isViewLocked = false; // 视图锁定状态
+let lockReason = ''; // 锁定原因: 'search' | 'scroll' | 'manual'
+let pendingMessageCount = 0; // 锁定期间累积的新消息数量
+let selectedLogId = null; // 当前选中的日志 ID
+
+// 锁定原因配置
+const LOCK_REASON = {
+    search: { icon: 'fa-search', text: '搜索中' },
+    scroll: { icon: 'fa-hand-paper', text: '手动浏览' },
+    manual: { icon: 'fa-lock', text: '已锁定' }
+};
+
+// 模式配置
+const MODE_CONFIG = {
+    log: {
+        name: 'Log',
+        icon: 'fa-list-ul',
+        description: '结构化日志显示',
+        shortcut: '1'
+    },
+    hex: {
+        name: 'HEX',
+        icon: 'fa-code',
+        description: '十六进制数据查看',
+        shortcut: '2'
+    },
+    normal: {
+        name: 'Normal',
+        icon: 'fa-terminal',
+        description: '纯文本终端风格',
+        shortcut: '3'
+    }
+};
 
 // ========== Custom Dropdown Component ==========
 class CustomDropdown {
@@ -439,11 +473,11 @@ const elements = {
     btnShowTimestamp: document.getElementById('btnShowTimestamp'),
     btnShowLevel: document.getElementById('btnShowLevel'),
     btnShowTag: document.getElementById('btnShowTag'),
-    btnHexMode: document.getElementById('btnHexMode'),
     btnShowLocation: document.getElementById('btnShowLocation'),
     btnAutoSave: document.getElementById('btnAutoSave'),
 
     // Toolbar controls
+    btnViewLock: document.getElementById('btnViewLock'),
     scrollToBottom: document.getElementById('scrollToBottom'),
     toggleWrap: document.getElementById('toggleWrap'),
     increaseFont: document.getElementById('increaseFont'),
@@ -459,6 +493,13 @@ const elements = {
     emptyState: document.getElementById('emptyState'),
     newDataToast: document.getElementById('newDataToast'),
     jumpToNew: document.getElementById('jumpToNew'),
+    
+    // View lock
+    viewLockNotification: document.getElementById('viewLockNotification'),
+    lockReasonText: document.getElementById('lockReasonText'),
+    pendingCounter: document.getElementById('pendingCounter'),
+    pendingCountValue: document.getElementById('pendingCountValue'),
+    btnUnlockFromNotification: document.getElementById('btnUnlockFromNotification'),
 
     // Actions
     clearBtn: document.getElementById('clearBtn'),
@@ -698,6 +739,10 @@ function performSearch() {
         searchMatches = [];
         currentSearchIndex = -1;
         updateSearchDisplay();
+        // 搜索清空时，如果是因为搜索而锁定的，则解锁
+        if (isViewLocked && lockReason === 'search') {
+            unlockView();
+        }
         return;
     }
 
@@ -725,7 +770,13 @@ function performSearch() {
 
     currentSearchIndex = searchMatches.length > 0 ? 0 : -1;
     updateSearchDisplay();
-    if (searchMatches.length > 0) jumpToMatch(0);
+    if (searchMatches.length > 0) {
+        // 搜索时锁定视图
+        if (!isViewLocked) {
+            lockView('search');
+        }
+        jumpToMatch(0);
+    }
 }
 
 function updateSearchDisplay() {
@@ -741,25 +792,40 @@ function jumpToMatch(direction) {
         currentSearchIndex = (currentSearchIndex + 1) % searchMatches.length;
     } else if (direction === 'prev') {
         currentSearchIndex = (currentSearchIndex - 1 + searchMatches.length) % searchMatches.length;
+    } else if (typeof direction === 'number') {
+        currentSearchIndex = direction;
     }
 
     updateSearchDisplay();
+    
+    // 重新渲染以更新当前匹配项的高亮
+    renderLogTable();
 
+    // 滚动到当前匹配项
     const rowIndex = searchMatches[currentSearchIndex];
     const row = elements.logBody.children[rowIndex];
     if (row) {
         row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        row.classList.add('matched');
-        setTimeout(() => row.classList.remove('matched'), 2000);
     }
 }
 
-function highlightSearch(text) {
+/**
+ * 高亮搜索关键词
+ * @param {string} text - 要高亮的文本
+ * @param {number} entryIndex - 当前条目在 filteredEntries 中的索引
+ * @returns {string} - 高亮后的 HTML
+ */
+function highlightSearch(text, entryIndex) {
     const keyword = elements.keywordFilter.value;
     if (!keyword) return text;
 
     const useRegex = elements.useRegex.checked;
     const caseSensitive = elements.caseSensitive.checked;
+    
+    // 判断当前条目是否是当前搜索匹配项
+    const isCurrentMatch = searchMatches.length > 0 && 
+                          currentSearchIndex >= 0 && 
+                          searchMatches[currentSearchIndex] === entryIndex;
 
     try {
         let regex;
@@ -769,7 +835,23 @@ function highlightSearch(text) {
             const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             regex = new RegExp(`(${escaped})`, caseSensitive ? 'g' : 'gi');
         }
-        return text.replace(regex, '<mark style="background:var(--warning);color:#000;padding:0 2px;border-radius:2px;">$1</mark>');
+        
+        // 如果是当前匹配项，使用特殊高亮
+        if (isCurrentMatch) {
+            let matchCount = 0;
+            return text.replace(regex, (match) => {
+                matchCount++;
+                // 第一个匹配项使用当前高亮样式
+                if (matchCount === 1) {
+                    return `<mark class="search-highlight-current">${match}</mark>`;
+                }
+                // 其他匹配项使用普通高亮样式
+                return `<mark class="search-highlight">${match}</mark>`;
+            });
+        } else {
+            // 非当前匹配项，所有匹配都使用普通高亮
+            return text.replace(regex, '<mark class="search-highlight">$1</mark>');
+        }
     } catch {
         return text;
     }
@@ -991,6 +1073,200 @@ function clearAllFiltersAction() {
     updateActiveFiltersDisplay();
 }
 
+// ========== View Lock Management ==========
+/**
+ * 锁定视图
+ * @param {string} reason - 'search' | 'scroll' | 'manual'
+ */
+function lockView(reason) {
+    if (isViewLocked && lockReason === reason) return;
+    
+    isViewLocked = true;
+    lockReason = reason;
+    pendingMessageCount = 0;
+    
+    // 更新 UI
+    updateViewLockUI();
+    
+    // 显示锁定通知
+    showLockNotification();
+    
+    console.log(`[ViewLock] Locked - Reason: ${reason}`);
+}
+
+/**
+ * 解锁视图
+ */
+function unlockView() {
+    if (!isViewLocked) return;
+    
+    isViewLocked = false;
+    lockReason = '';
+    pendingMessageCount = 0;
+    
+    // 更新 UI
+    updateViewLockUI();
+    
+    // 隐藏锁定通知
+    hideLockNotification();
+    
+    // 如果有待处理的消息，重新渲染并滚动到底部
+    if (pendingEntries.length > 0) {
+        renderLogTable();
+        if (autoScroll) {
+            scrollToBottom();
+        }
+    }
+    
+    console.log('[ViewLock] Unlocked');
+}
+
+/**
+ * 切换视图锁定状态
+ */
+function toggleViewLock() {
+    if (isViewLocked) {
+        unlockView();
+    } else {
+        lockView('manual');
+    }
+}
+
+/**
+ * 更新视图锁定 UI
+ */
+function updateViewLockUI() {
+    const lockBtn = elements.btnViewLock;
+    const lockIcon = lockBtn.querySelector('i');
+    
+    if (isViewLocked) {
+        lockBtn.classList.add('locked');
+        lockIcon.className = 'fas fa-lock';
+        lockBtn.title = '解锁视图 (Cmd+L)';
+    } else {
+        lockBtn.classList.remove('locked');
+        lockIcon.className = 'fas fa-unlock';
+        lockBtn.title = '锁定视图 (Cmd+L)';
+    }
+}
+
+/**
+ * 显示锁定通知
+ */
+function showLockNotification() {
+    const notification = elements.viewLockNotification;
+    const reasonConfig = LOCK_REASON[lockReason] || LOCK_REASON.manual;
+    
+    // 更新通知内容
+    elements.lockReasonText.innerHTML = `<i class="fas ${reasonConfig.icon}"></i> ${reasonConfig.text}`;
+    elements.pendingCountValue.textContent = pendingMessageCount;
+    
+    // 显示通知
+    notification.style.display = 'block';
+}
+
+/**
+ * 隐藏锁定通知
+ */
+function hideLockNotification() {
+    elements.viewLockNotification.style.display = 'none';
+}
+
+/**
+ * 更新待处理消息计数
+ */
+function updatePendingCount() {
+    if (isViewLocked) {
+        elements.pendingCountValue.textContent = pendingMessageCount;
+        
+        // 如果计数器之前隐藏，现在显示它
+        if (pendingMessageCount > 0) {
+            elements.pendingCounter.style.display = 'flex';
+        }
+    }
+}
+
+// ========== Display Mode Management ==========
+/**
+ * 切换显示模式
+ * @param {string} mode - 'log' | 'hex' | 'normal'
+ */
+function switchDisplayMode(mode) {
+    if (!MODE_CONFIG[mode]) {
+        console.error('Invalid display mode:', mode);
+        return;
+    }
+    
+    if (displayMode === mode) return;
+    
+    // 保存当前滚动位置
+    const scrollPos = elements.logContainer.scrollTop;
+    const wasAtBottom = isAtBottom();
+    
+    // 更新状态
+    displayMode = mode;
+    
+    // 保存到 localStorage
+    localStorage.setItem('displayMode', mode);
+    
+    // 更新模式切换器 UI
+    updateModeSwitcher();
+    
+    // 重新渲染
+    renderLogTable();
+    
+    // 恢复滚动位置
+    if (autoScroll || wasAtBottom) {
+        scrollToBottom();
+    } else {
+        elements.logContainer.scrollTop = scrollPos;
+    }
+    
+    // 显示提示
+    showStatus(`已切换到 ${MODE_CONFIG[mode].name} 模式`, 'info');
+}
+
+/**
+ * 更新模式切换器 UI
+ */
+function updateModeSwitcher() {
+    const options = document.querySelectorAll('.mode-option');
+    const indicator = document.querySelector('.mode-indicator');
+    
+    options.forEach((option, index) => {
+        const mode = option.dataset.mode;
+        
+        if (mode === displayMode) {
+            option.classList.add('active');
+            
+            // 更新指示器位置
+            if (indicator) {
+                const width = option.offsetWidth;
+                const left = option.offsetLeft;
+                indicator.style.width = `${width}px`;
+                indicator.style.transform = `translateX(${left}px)`;
+            }
+        } else {
+            option.classList.remove('active');
+        }
+    });
+}
+
+/**
+ * 检查是否滚动到底部
+ */
+function isAtBottom() {
+    const container = elements.logContainer;
+    return container.scrollHeight - container.scrollTop <= container.clientHeight + 10;
+}
+
+/**
+ * 滚动到底部
+ */
+function scrollToBottom() {
+    elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+}
+
 // ========== Log Table Rendering ==========
 function renderLogTable() {
     const minLevel = parseInt(elements.levelFilter.value);
@@ -998,7 +1274,6 @@ function renderLogTable() {
     const selectedTags = new Set(
         Array.from(elements.tagList.querySelectorAll('input:checked')).map(cb => cb.value)
     );
-    const isHexMode = elements.hexMode.checked;
 
     filteredEntries = allEntries.filter(entry => {
         if (entry.level < minLevel) return false;
@@ -1007,71 +1282,43 @@ function renderLogTable() {
         return true;
     });
 
-    // Render table header based on display options
-    renderTableHeader(isHexMode);
+    // Render table header based on display mode
+    renderTableHeader();
 
     // Virtual scrolling: render only recent entries
     const visibleCount = Math.min(filteredEntries.length, 300);
     const startIdx = Math.max(0, filteredEntries.length - visibleCount);
     const visibleEntries = filteredEntries.slice(startIdx);
 
-    if (isHexMode) {
-        // HEX mode: only show index and hex data
-        elements.logBody.innerHTML = visibleEntries.map((entry, idx) => {
-            const hexData = stringToHex(entry.rawLine);
-            return `
-                <tr class="log-row hex-mode ${entry.bookmarked ? 'bookmarked' : ''}"
-                    data-index="${startIdx + idx}" data-id="${entry.id}">
-                    <td class="col-index">${entry.index + 1}</td>
-                    <td class="col-hex" colspan="5">${hexData}</td>
-                    <td class="col-action">
-                        <button class="bookmark-btn ${entry.bookmarked ? 'active' : ''}" data-id="${entry.id}">
-                            <i class="fas fa-bookmark"></i>
-                        </button>
-                    </td>
-                </tr>`;
-        }).join('');
-    } else {
-        // Normal mode: show columns based on display options
-        elements.logBody.innerHTML = visibleEntries.map((entry, idx) => {
-            const config = levelConfig[entry.levelName] || levelConfig.UNKNOWN;
-            const message = keyword ? highlightSearch(entry.message) : escapeHtml(entry.message);
-
-            let levelHtml = '';
-            if (elements.showLevel.checked) {
-                levelHtml = `<td class="col-level">
-                    <span class="level-badge" style="background:${config.badgeBg};color:${config.color};">${entry.levelName}</span>
-                </td>`;
-            }
-
-            let tagHtml = '';
-            if (elements.showTag.checked) {
-                tagHtml = `<td class="col-tag"><span class="tag-badge">${entry.tag}</span></td>`;
-            }
-
-            let locationHtml = '';
-            if (elements.showLocation.checked && entry.location) {
-                locationHtml = `<span class="log-location">${entry.location}</span>`;
-            }
-
-            return `
-                <tr class="log-row level-${entry.levelName} ${entry.bookmarked ? 'bookmarked' : ''}"
-                    data-index="${startIdx + idx}" data-id="${entry.id}">
-                    <td class="col-index">${entry.index + 1}</td>
-                    ${elements.showTimestamp.checked ? `<td class="col-time">${entry.timestamp}</td>` : ''}
-                    ${levelHtml}
-                    ${tagHtml}
-                    <td class="col-message" style="${wrapLines ? 'white-space:pre-wrap;' : ''}">${message}${locationHtml}</td>
-                    <td class="col-action">
-                        <button class="bookmark-btn ${entry.bookmarked ? 'active' : ''}" data-id="${entry.id}">
-                            <i class="fas fa-bookmark"></i>
-                        </button>
-                    </td>
-                </tr>`;
-        }).join('');
+    // Render based on display mode
+    switch (displayMode) {
+        case 'hex':
+            renderHexMode(visibleEntries, startIdx, keyword);
+            break;
+        case 'normal':
+            renderNormalMode(visibleEntries, startIdx, keyword);
+            break;
+        case 'log':
+        default:
+            renderLogMode(visibleEntries, startIdx, keyword);
+            break;
     }
 
     elements.emptyState.classList.toggle('hidden', filteredEntries.length > 0);
+
+    // 恢复选中状态
+    if (selectedLogId) {
+        const selectedRow = elements.logBody.querySelector(`[data-id="${selectedLogId}"]`);
+        if (selectedRow) {
+            selectedRow.classList.add('selected');
+        }
+    }
+
+    // 视图锁定时不滚动
+    if (isViewLocked) {
+        // 锁定时不执行任何滚动操作
+        return;
+    }
 
     if (autoScroll && !isUserScrolling) {
         elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
@@ -1080,39 +1327,171 @@ function renderLogTable() {
     }
 }
 
-function renderTableHeader(isHexMode) {
-    if (isHexMode) {
-        // HEX mode: simplified header
-        elements.logHead.innerHTML = `
-            <tr>
-                <th class="col-index"><i class="fas fa-hashtag"></i></th>
-                <th class="col-hex" colspan="5"><i class="fas fa-code"></i> HEX 数据</th>
-                <th class="col-action"><i class="fas fa-ellipsis-h"></i></th>
-            </tr>`;
-    } else {
-        // Normal mode: dynamic header based on display options
-        let headerHtml = '<tr><th class="col-index"><i class="fas fa-hashtag"></i></th>';
+/**
+ * 渲染 Log 模式（结构化日志）
+ */
+function renderLogMode(visibleEntries, startIdx, keyword) {
+    elements.logBody.innerHTML = visibleEntries.map((entry, idx) => {
+        const config = levelConfig[entry.levelName] || levelConfig.UNKNOWN;
+        const entryIndex = startIdx + idx;
+        const message = keyword ? highlightSearch(entry.message, entryIndex) : escapeHtml(entry.message);
         
-        if (elements.showTimestamp.checked) {
-            headerHtml += '<th class="col-time"><i class="fas fa-clock"></i> 时间</th>';
-        }
-        
+        // 新消息类名
+        const newClass = entry.isNew ? 'new-entry' : '';
+
+        let levelHtml = '';
         if (elements.showLevel.checked) {
-            headerHtml += '<th class="col-level"><i class="fas fa-signal"></i> 级别</th>';
+            levelHtml = `<td class="col-level">
+                <span class="level-badge" style="background:${config.badgeBg};color:${config.color};">${entry.levelName}</span>
+            </td>`;
         }
-        
+
+        let tagHtml = '';
         if (elements.showTag.checked) {
-            headerHtml += '<th class="col-tag"><i class="fas fa-tag"></i> Tag</th>';
+            tagHtml = `<td class="col-tag"><span class="tag-badge">${entry.tag}</span></td>`;
         }
+
+        let locationHtml = '';
+        if (elements.showLocation.checked && entry.location) {
+            locationHtml = `<span class="log-location">${entry.location}</span>`;
+        }
+
+        return `
+            <tr class="log-row level-${entry.levelName} ${entry.bookmarked ? 'bookmarked' : ''} ${newClass}"
+                data-index="${startIdx + idx}" data-id="${entry.id}">
+                <td class="col-index">${entry.index + 1}</td>
+                ${elements.showTimestamp.checked ? `<td class="col-time">${entry.timestamp}</td>` : ''}
+                ${levelHtml}
+                ${tagHtml}
+                <td class="col-message" style="${wrapLines ? 'white-space:pre-wrap;' : ''}">${message}${locationHtml}</td>
+                <td class="col-action">
+                    <button class="bookmark-btn ${entry.bookmarked ? 'active' : ''}" data-id="${entry.id}">
+                        <i class="fas fa-bookmark"></i>
+                    </button>
+                </td>
+            </tr>`;
+    }).join('');
+}
+
+/**
+ * 渲染 HEX 模式（十六进制数据）
+ */
+function renderHexMode(visibleEntries, startIdx, keyword) {
+    elements.logBody.innerHTML = visibleEntries.map((entry, idx) => {
+        const hexData = stringToHexFormatted(entry.rawLine);
+        const newClass = entry.isNew ? 'new-entry' : '';
+        return `
+            <tr class="log-row hex-mode ${entry.bookmarked ? 'bookmarked' : ''} ${newClass}"
+                data-index="${startIdx + idx}" data-id="${entry.id}">
+                <td class="col-index">${entry.index + 1}</td>
+                <td class="col-hex" colspan="5">${hexData}</td>
+                <td class="col-action">
+                    <button class="bookmark-btn ${entry.bookmarked ? 'active' : ''}" data-id="${entry.id}">
+                        <i class="fas fa-bookmark"></i>
+                    </button>
+                </td>
+            </tr>`;
+    }).join('');
+}
+
+/**
+ * 渲染 Normal 模式（纯文本终端风格）
+ */
+function renderNormalMode(visibleEntries, startIdx, keyword) {
+    elements.logBody.innerHTML = visibleEntries.map((entry, idx) => {
+        const entryIndex = startIdx + idx;
+        const rawText = keyword ? highlightSearch(entry.rawLine, entryIndex) : escapeHtml(entry.rawLine);
+        const newClass = entry.isNew ? 'new-entry' : '';
         
-        headerHtml += '<th class="col-message"><i class="fas fa-align-left"></i> 消息</th>';
-        headerHtml += '<th class="col-action"><i class="fas fa-ellipsis-h"></i></th>';
-        headerHtml += '</tr>';
-        
-        elements.logHead.innerHTML = headerHtml;
+        return `
+            <tr class="log-row normal-mode ${entry.bookmarked ? 'bookmarked' : ''} ${newClass}"
+                data-index="${startIdx + idx}" data-id="${entry.id}">
+                <td class="col-index">${entry.index + 1}</td>
+                <td class="col-normal" colspan="5" style="${wrapLines ? 'white-space:pre-wrap;' : ''}">${rawText}</td>
+                <td class="col-action">
+                    <button class="bookmark-btn ${entry.bookmarked ? 'active' : ''}" data-id="${entry.id}">
+                        <i class="fas fa-bookmark"></i>
+                    </button>
+                </td>
+            </tr>`;
+    }).join('');
+}
+
+function renderTableHeader() {
+    switch (displayMode) {
+        case 'hex':
+            elements.logHead.innerHTML = `
+                <tr>
+                    <th class="col-index"><i class="fas fa-hashtag"></i></th>
+                    <th class="col-hex" colspan="5"><i class="fas fa-code"></i> HEX 数据</th>
+                    <th class="col-action"><i class="fas fa-ellipsis-h"></i></th>
+                </tr>`;
+            break;
+            
+        case 'normal':
+            elements.logHead.innerHTML = `
+                <tr>
+                    <th class="col-index"><i class="fas fa-hashtag"></i></th>
+                    <th class="col-normal" colspan="5"><i class="fas fa-terminal"></i> 原始数据</th>
+                    <th class="col-action"><i class="fas fa-ellipsis-h"></i></th>
+                </tr>`;
+            break;
+            
+        case 'log':
+        default:
+            // Log mode: dynamic header based on display options
+            let headerHtml = '<tr><th class="col-index"><i class="fas fa-hashtag"></i></th>';
+            
+            if (elements.showTimestamp.checked) {
+                headerHtml += '<th class="col-time"><i class="fas fa-clock"></i> 时间</th>';
+            }
+            
+            if (elements.showLevel.checked) {
+                headerHtml += '<th class="col-level"><i class="fas fa-signal"></i> 级别</th>';
+            }
+            
+            if (elements.showTag.checked) {
+                headerHtml += '<th class="col-tag"><i class="fas fa-tag"></i> Tag</th>';
+            }
+            
+            headerHtml += '<th class="col-message"><i class="fas fa-align-left"></i> 消息</th>';
+            headerHtml += '<th class="col-action"><i class="fas fa-ellipsis-h"></i></th>';
+            headerHtml += '</tr>';
+            
+            elements.logHead.innerHTML = headerHtml;
+            break;
     }
 }
 
+/**
+ * 将字符串转换为格式化的 HEX 显示
+ * 格式: 地址 | HEX 数据 (每16字节一行) | ASCII
+ */
+function stringToHexFormatted(str) {
+    const bytes = Array.from(str).map(c => c.charCodeAt(0));
+    const lines = [];
+    
+    for (let i = 0; i < bytes.length; i += 16) {
+        const chunk = bytes.slice(i, i + 16);
+        
+        // 地址偏移
+        const address = i.toString(16).toUpperCase().padStart(4, '0');
+        
+        // HEX 数据（每8字节一组）
+        const hex1 = chunk.slice(0, 8).map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        const hex2 = chunk.slice(8, 16).map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        const hexPart = hex1 + (hex2 ? '  ' + hex2 : '');
+        
+        // ASCII 对照
+        const ascii = chunk.map(b => (b >= 32 && b <= 126) ? String.fromCharCode(b) : '.').join('');
+        
+        lines.push(`<span class="hex-address">${address}</span>  <span class="hex-data">${hexPart.padEnd(49, ' ')}</span>  <span class="hex-ascii">|${ascii}|</span>`);
+    }
+    
+    return lines.join('<br>');
+}
+
+// 简单的 HEX 转换（用于简单场景）
 function stringToHex(str) {
     return Array.from(str)
         .map(char => {
@@ -1182,8 +1561,16 @@ function setupSmartScroll() {
         if (nearBottom) {
             autoScroll = true;
             elements.newDataToast.style.display = 'none';
+            // 滚动到底部时，如果是因为滚动而锁定的，则解锁
+            if (isViewLocked && lockReason === 'scroll') {
+                unlockView();
+            }
         } else {
             autoScroll = false;
+            // 用户向上滚动时，锁定视图
+            if (!isViewLocked) {
+                lockView('scroll');
+            }
         }
 
         clearTimeout(scrollTimeout);
@@ -1194,11 +1581,19 @@ function setupSmartScroll() {
         elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
         elements.newDataToast.style.display = 'none';
         autoScroll = true;
+        // 跳转到新消息时解锁
+        if (isViewLocked && lockReason === 'scroll') {
+            unlockView();
+        }
     });
 
     elements.scrollToBottom.addEventListener('click', () => {
         elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
         autoScroll = true;
+        // 滚动到底部时解锁
+        if (isViewLocked && lockReason === 'scroll') {
+            unlockView();
+        }
     });
 }
 
@@ -1457,7 +1852,10 @@ function startBatchProcessing() {
     setInterval(() => {
         if (pendingEntries.length === 0) return;
         const toAdd = pendingEntries.splice(0, pendingEntries.length);
-        toAdd.forEach((entry, i) => { entry.index = allEntries.length + i; });
+        toAdd.forEach((entry, i) => { 
+            entry.index = allEntries.length + i;
+            entry.isNew = true; // 标记为新消息
+        });
         allEntries.push(...toAdd);
 
         if (allEntries.length > MAX_LOG_ENTRIES) {
@@ -1466,6 +1864,11 @@ function startBatchProcessing() {
 
         renderLogTable();
         updateStats();
+        
+        // 400ms 后移除新消息标记（与动画时长一致）
+        setTimeout(() => {
+            toAdd.forEach(entry => { entry.isNew = false; });
+        }, 400);
     }, BATCH_INTERVAL);
 }
 
@@ -1553,7 +1956,6 @@ function syncToolbarButtons() {
     updateToolbarButtonState('btnShowTimestamp', elements.showTimestamp.checked);
     updateToolbarButtonState('btnShowLevel', elements.showLevel.checked);
     updateToolbarButtonState('btnShowTag', elements.showTag.checked);
-    updateToolbarButtonState('btnHexMode', elements.hexMode.checked);
     updateToolbarButtonState('btnShowLocation', elements.showLocation.checked);
     updateToolbarButtonState('btnAutoSave', elements.autoSave.checked);
 }
@@ -1562,6 +1964,37 @@ function syncToolbarButtons() {
 function setupEventListeners() {
     // Theme toggle
     elements.toggleTheme.addEventListener('click', toggleTheme);
+
+    // Mode switcher
+    document.querySelectorAll('.mode-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.dataset.mode;
+            switchDisplayMode(mode);
+        });
+    });
+
+    // View lock button
+    elements.btnViewLock.addEventListener('click', toggleViewLock);
+    elements.btnUnlockFromNotification.addEventListener('click', unlockView);
+
+    // Keyboard shortcuts for mode switching and view lock
+    document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) {
+            if (e.key === '1') {
+                e.preventDefault();
+                switchDisplayMode('log');
+            } else if (e.key === '2') {
+                e.preventDefault();
+                switchDisplayMode('hex');
+            } else if (e.key === '3') {
+                e.preventDefault();
+                switchDisplayMode('normal');
+            } else if (e.key === 'l' || e.key === 'L') {
+                e.preventDefault();
+                toggleViewLock();
+            }
+        }
+    });
 
     // Connect/Disconnect
     elements.connectBtn.addEventListener('click', () => {
@@ -1725,11 +2158,20 @@ function setupEventListeners() {
 
     // Display option checkboxes -> toolbar buttons sync
     const togglePairs = [
-        ['autoScroll', 'btnAutoScroll', (v) => { autoScroll = v; }],
+        ['autoScroll', 'btnAutoScroll', (v) => { 
+            autoScroll = v;
+            // 关闭自动滚动时锁定视图
+            if (!v && !isViewLocked) {
+                lockView('scroll');
+            }
+            // 开启自动滚动时，如果是因为滚动而锁定的，则解锁
+            else if (v && isViewLocked && lockReason === 'scroll') {
+                unlockView();
+            }
+        }],
         ['showTimestamp', 'btnShowTimestamp', () => renderLogTable()],
         ['showLevel', 'btnShowLevel', () => renderLogTable()],
         ['showTag', 'btnShowTag', () => renderLogTable()],
-        ['hexMode', 'btnHexMode', () => renderLogTable()],
         ['showLocation', 'btnShowLocation', () => renderLogTable()],
         ['autoSave', 'btnAutoSave', (v) => {
             autoSaveEnabled = v;
@@ -1802,6 +2244,39 @@ function setupEventListeners() {
         if (btn) {
             e.stopPropagation();
             toggleBookmark(btn.dataset.id);
+            return;
+        }
+        
+        // 点击日志行选中高亮
+        const row = e.target.closest('.log-row');
+        if (row) {
+            e.stopPropagation(); // 阻止事件冒泡
+            const logId = row.dataset.id;
+            
+            // 如果点击的是已选中的行，取消选中
+            if (row.classList.contains('selected')) {
+                row.classList.remove('selected');
+                selectedLogId = null; // 清除选中 ID
+            } else {
+                // 移除其他行的选中状态
+                elements.logBody.querySelectorAll('.log-row.selected').forEach(r => {
+                    r.classList.remove('selected');
+                });
+                // 添加选中状态
+                row.classList.add('selected');
+                selectedLogId = logId; // 保存选中 ID
+            }
+        }
+    });
+    
+    // 点击日志容器的空白区域取消选中
+    elements.logContainer.addEventListener('click', (e) => {
+        // 如果点击的不是表格内容，取消所有选中
+        if (e.target === elements.logContainer || e.target === elements.logTable) {
+            elements.logBody.querySelectorAll('.log-row.selected').forEach(r => {
+                r.classList.remove('selected');
+            });
+            selectedLogId = null; // 清除选中 ID
         }
     });
 
@@ -1809,7 +2284,15 @@ function setupEventListeners() {
     if (window.__TAURI__) {
         window.__TAURI__.event.listen('serial-data', (event) => {
             const entry = parseLogLine(event.payload, allEntries.length + pendingEntries.length);
-            if (entry) pendingEntries.push(entry);
+            if (entry) {
+                pendingEntries.push(entry);
+                
+                // 如果视图已锁定，增加待处理消息计数
+                if (isViewLocked) {
+                    pendingMessageCount++;
+                    updatePendingCount();
+                }
+            }
         });
 
         window.__TAURI__.event.listen('serial-error', (event) => {
@@ -1908,6 +2391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initDropdowns();
     loadSearchHistory();
+    updateModeSwitcher(); // 初始化模式切换器
 
     if (window.__TAURI__) {
         listPorts();
@@ -1940,6 +2424,13 @@ async function loadSettings() {
         if (savedInterval) {
             autoSaveIntervalSeconds = parseInt(savedInterval);
             elements.autoSaveIntervalInput.value = savedInterval;
+        }
+        
+        // 加载显示模式
+        const savedMode = localStorage.getItem('displayMode');
+        if (savedMode && MODE_CONFIG[savedMode]) {
+            displayMode = savedMode;
+            updateModeSwitcher();
         }
     } catch (error) {
         console.error('加载设置失败:', error);
