@@ -18,6 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -27,13 +28,14 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install Tauri CLI
+        run: npm install -g @tauri-apps/cli@1
+
       - name: Build Tauri app
-        run: |
-          npm install -g @tauri-apps/cli@1
-          cd src-tauri
-          cargo build --release
-          cd ..
-          tauri build
+        run: tauri build
 
       - name: Upload MSI installer
         uses: actions/upload-artifact@v4
