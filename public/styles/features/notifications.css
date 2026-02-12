@@ -1,0 +1,134 @@
+/* ========== Notifications ========== */
+.new-data-toast {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 8px 16px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    z-index: 100;
+    animation: slideUp 0.3s ease;
+}
+
+.new-data-toast i {
+    color: var(--primary);
+}
+
+.view-lock-notification {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg-card);
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 101;
+    animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 320px;
+}
+
+.lock-notification-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.lock-notification-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary), #2563eb);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.lock-notification-icon i {
+    font-size: 18px;
+    color: white;
+}
+
+.lock-notification-text {
+    flex: 1;
+}
+
+.lock-notification-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.lock-notification-reason {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.lock-notification-counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    min-width: 60px;
+}
+
+.counter-label {
+    font-size: 10px;
+    color: var(--text-hint);
+    margin-bottom: 2px;
+}
+
+.counter-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: 'Courier New', monospace;
+}
+
+.btn-unlock {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-unlock:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-unlock:active {
+    transform: translateY(0);
+}
+
+#btnViewLock.locked {
+    background: var(--primary);
+    color: white;
+}
+
+#btnViewLock.locked i {
+    color: white;
+}
+

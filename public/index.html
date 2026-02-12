@@ -5,7 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCU Log Debugger</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+
+    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/core/animations.css">
+    <link rel="stylesheet" href="styles/base.css">
+
+    <link rel="stylesheet" href="styles/layout/app.css">
+    <link rel="stylesheet" href="styles/layout/titlebar.css">
+    <link rel="stylesheet" href="styles/layout/sidebar.css">
+    <link rel="stylesheet" href="styles/layout/responsive.css">
+
+    <link rel="stylesheet" href="styles/components/buttons.css">
+    <link rel="stylesheet" href="styles/components/dropdowns.css">
+    <link rel="stylesheet" href="styles/components/multiselect.css">
+    <link rel="stylesheet" href="styles/components/search.css">
+    <link rel="stylesheet" href="styles/components/tags.css">
+    <link rel="stylesheet" href="styles/components/toolbar.css">
+    <link rel="stylesheet" href="styles/components/emptyState.css">
+
+    <link rel="stylesheet" href="styles/features/stats.css">
+    <link rel="stylesheet" href="styles/features/logTable.css">
+    <link rel="stylesheet" href="styles/features/sendPanel.css">
+    <link rel="stylesheet" href="styles/features/modals.css">
+    <link rel="stylesheet" href="styles/features/toast.css">
+    <link rel="stylesheet" href="styles/features/contextMenu.css">
+    <link rel="stylesheet" href="styles/features/bookmark.css">
+    <link rel="stylesheet" href="styles/features/notifications.css">
 </head>
 <body>
     <div class="app">
@@ -174,7 +199,6 @@
                             <span>关键字搜索</span>
                         </label>
                         <div class="search-box">
-                            <!-- 搜索输入行 -->
                             <div class="search-input-row">
                                 <div class="input-with-icon input-with-clear input-with-history">
                                     <i class="fas fa-search input-icon"></i>
@@ -192,7 +216,17 @@
                                         <div class="history-list" id="historyList"></div>
                                     </div>
                                 </div>
-                                <!-- 搜索选项按钮组 -->
+                                <div class="search-nav-buttons">
+                                    <button class="btn-nav-icon" id="searchPrev" title="上一个 (Shift+Enter)">
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                    <button class="btn-nav-icon" id="searchNext" title="下一个 (Enter)">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="search-options-row">
                                 <div class="search-options-inline">
                                     <label class="search-option-btn" title="区分大小写 (Alt+C)">
                                         <input type="checkbox" id="caseSensitive">
@@ -207,24 +241,11 @@
                                         <span class="option-icon">.*</span>
                                     </label>
                                 </div>
-                            </div>
-
-                            <!-- 搜索导航行 -->
-                            <div class="search-nav-row">
                                 <div class="search-count-display">
                                     <span class="search-count" id="searchCount">0/0</span>
                                 </div>
-                                <div class="search-nav-buttons">
-                                    <button class="btn-nav-icon" id="searchPrev" title="上一个 (Shift+Enter)">
-                                        <i class="fas fa-chevron-up"></i>
-                                    </button>
-                                    <button class="btn-nav-icon" id="searchNext" title="下一个 (Enter)">
-                                        <i class="fas fa-chevron-down"></i>
-                                    </button>
-                                </div>
                             </div>
 
-                            <!-- 正则快捷方式 -->
                             <div class="regex-shortcuts" id="regexShortcuts" style="display: none;">
                                 <button class="regex-btn" data-pattern=".*error.*" title="包含 error">.*error.*</button>
                                 <button class="regex-btn" data-pattern="^\[ERROR\]" title="ERROR 开头">^[ERROR]</button>
@@ -234,7 +255,6 @@
                             </div>
                         </div>
 
-                        <!-- Active Filters -->
                         <div class="active-filters" id="activeFilters" style="display: none;">
                             <div class="active-filters-header">
                                 <i class="fas fa-filter"></i>
@@ -264,7 +284,6 @@
 
             <!-- Main Content -->
             <main class="content">
-                <!-- Hidden state checkboxes -->
                 <div style="display: none;">
                     <input type="checkbox" id="autoScroll" checked>
                     <input type="checkbox" id="showTimestamp" checked>
@@ -275,10 +294,8 @@
                     <input type="checkbox" id="autoSave">
                 </div>
 
-                <!-- Toolbar -->
                 <div class="toolbar">
                     <div class="toolbar-left">
-                        <!-- Mode Switcher -->
                         <div class="mode-switcher">
                             <button class="mode-option active" data-mode="log" title="Log 模式 (Cmd+1)">
                                 <i class="fas fa-list-ul"></i>
@@ -294,9 +311,9 @@
                             </button>
                             <div class="mode-indicator"></div>
                         </div>
-                        
+
                         <div class="toolbar-divider"></div>
-                        
+
                         <button class="btn-icon" id="btnViewLock" title="锁定视图 (Cmd+L)">
                             <i class="fas fa-unlock"></i>
                         </button>
@@ -359,7 +376,6 @@
                     </div>
                 </div>
 
-                <!-- Stats Bar -->
                 <div class="stats-bar">
                     <div class="stat-item">
                         <span class="stat-badge" style="background: var(--level-verbose-badge); color: var(--level-verbose-fg);" id="statVERBOSE">0</span>
@@ -388,7 +404,6 @@
                     </div>
                     <div class="stat-divider"></div>
 
-                    <!-- Stats bar search -->
                     <div class="qsearch" id="quickSearch">
                         <div class="qsearch__icon"><i class="fas fa-search"></i></div>
                         <input type="search" id="statSearchInput" class="qsearch__input" placeholder="搜索日志..." autocomplete="off">
@@ -397,7 +412,6 @@
                         <button type="button" class="qsearch__btn qsearch__btn--nav" id="statSearchPrev" title="上一个"><i class="fas fa-chevron-up"></i></button>
                         <button type="button" class="qsearch__btn qsearch__btn--nav" id="statSearchNext" title="下一个"><i class="fas fa-chevron-down"></i></button>
                         <span class="qsearch__count" id="statSearchCount">0/0</span>
-                        <!-- History dropdown -->
                         <div class="qsearch__dropdown" id="statSearchHistoryDropdown">
                             <div class="qsearch__dropdown-header">
                                 <span>搜索历史</span>
@@ -408,7 +422,6 @@
                     </div>
                 </div>
 
-                <!-- Log Table -->
                 <div class="log-table-container" id="logContainer">
                     <table class="log-table" id="logTable">
                         <thead id="logHead">
@@ -430,14 +443,13 @@
                         <p>暂无日志数据</p>
                         <p class="empty-hint">连接串口后开始接收日志</p>
                     </div>
-                    
+
                     <div class="new-data-toast" id="newDataToast" style="display: none;">
                         <i class="fas fa-arrow-down"></i>
                         <span>有新日志</span>
                         <button class="btn-small" id="jumpToNew">查看</button>
                     </div>
-                    
-                    <!-- View Lock Notification -->
+
                     <div class="view-lock-notification" id="viewLockNotification" style="display: none;">
                         <div class="lock-notification-content">
                             <div class="lock-notification-icon">
@@ -459,7 +471,6 @@
                     </div>
                 </div>
 
-                <!-- Send Panel -->
                 <div class="send-panel" id="sendPanel">
                     <div class="send-input-wrapper">
                         <div class="send-options">
@@ -499,7 +510,6 @@
                 </div>
             </main>
 
-            <!-- Bookmark Panel -->
             <aside class="bookmark-panel" id="bookmarkPanel" style="display: none;">
                 <div class="panel-header">
                     <h3 class="panel-title" style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">
@@ -515,7 +525,6 @@
         </div>
     </div>
 
-    <!-- Context Menu -->
     <div class="context-menu" id="contextMenu" style="display: none;">
         <div class="menu-item" id="ctxBookmark">
             <i class="fas fa-bookmark"></i>
@@ -540,10 +549,8 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Settings Modal -->
     <div class="modal-overlay" id="settingsModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -563,12 +570,12 @@
                             </button>
                         </div>
                         <p class="settings-hint">
-                            <i class="fas fa-info-circle"></i> 
+                            <i class="fas fa-info-circle"></i>
                             日志文件将保存到此目录。留空则使用默认路径。
                         </p>
                     </div>
                 </div>
-                
+
                 <div class="settings-section">
                     <h3><i class="fas fa-file-export"></i> 导出设置</h3>
                     <div class="settings-row">
@@ -585,7 +592,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="settings-section">
                     <h3><i class="fas fa-clock"></i> 自动保存</h3>
                     <div class="settings-row">
@@ -594,7 +601,7 @@
                         </label>
                         <input type="number" id="autoSaveInterval" class="settings-input" value="30" min="10" max="300" step="10">
                         <p class="settings-hint">
-                            <i class="fas fa-info-circle"></i> 
+                            <i class="fas fa-info-circle"></i>
                             启用自动保存后，每隔指定时间自动保存日志。
                         </p>
                     </div>
@@ -611,6 +618,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script type="module" src="main.js"></script>
 </body>
 </html>

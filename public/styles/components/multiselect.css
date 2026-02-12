@@ -1,0 +1,180 @@
+/* ========== Multi-select Dropdown for Level Filter ========== */
+.level-multiselect {
+    position: relative;
+    width: 100%;
+}
+
+.multiselect-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: 36px;
+}
+
+.multiselect-trigger:hover {
+    border-color: var(--primary);
+    background: var(--bg-card);
+}
+
+.level-multiselect.open .multiselect-trigger {
+    border-color: var(--primary);
+    background: var(--bg-card);
+    box-shadow: 0 0 0 3px var(--primary-bg);
+}
+
+.multiselect-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.multiselect-text.chips {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    white-space: normal;
+}
+
+.level-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.multiselect-text.level-verbose,
+.level-chip.level-verbose { background: var(--level-verbose-badge); color: var(--level-verbose-fg); }
+.multiselect-text.level-debug,
+.level-chip.level-debug { background: var(--level-debug-badge); color: var(--level-debug-fg); }
+.multiselect-text.level-info,
+.level-chip.level-info { background: var(--level-info-badge); color: var(--level-info-fg); }
+.multiselect-text.level-warn,
+.level-chip.level-warn { background: var(--level-warn-badge); color: var(--level-warn-fg); }
+.multiselect-text.level-error,
+.level-chip.level-error { background: var(--level-error-badge); color: var(--level-error-fg); }
+
+.multiselect-arrow {
+    font-size: 10px;
+    color: var(--text-hint);
+    transition: transform var(--transition-fast);
+    margin-left: 8px;
+}
+
+.level-multiselect.open .multiselect-arrow {
+    transform: rotate(180deg);
+}
+
+.multiselect-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    display: none;
+    overflow: hidden;
+    min-width: 100%;
+    width: max-content;
+    max-width: 300px;
+}
+
+.level-multiselect.open .multiselect-dropdown {
+    display: block;
+    animation: slideDown 0.15s ease-out;
+}
+
+.multiselect-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-secondary);
+    gap: 8px;
+}
+
+.multiselect-action {
+    padding: 4px 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-xs);
+    transition: all var(--transition-fast);
+}
+
+.multiselect-action:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+}
+
+.multiselect-options {
+    max-height: 240px;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.multiselect-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: var(--radius-xs);
+    transition: background var(--transition-fast);
+    position: relative;
+}
+
+.multiselect-option:hover {
+    background: var(--bg-hover);
+}
+
+.multiselect-option input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.multiselect-option .level-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: var(--radius-xs);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.5;
+    transition: opacity var(--transition-fast);
+}
+
+.multiselect-option input[type="checkbox"]:checked + .level-badge {
+    opacity: 1;
+}
+
+.multiselect-option:has(input[type="checkbox"]:checked) {
+    background: var(--bg-active);
+}
+
+.multiselect-option.is-checked {
+    background: var(--bg-active);
+}
+
+

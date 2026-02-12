@@ -1,0 +1,182 @@
+/* ========== Toolbar ========== */
+.toolbar {
+    height: 42px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    flex-shrink: 0;
+    gap: 12px;
+}
+
+.toolbar-left {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border-color);
+    margin: 0 4px;
+}
+
+.toolbar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.toolbar-center::-webkit-scrollbar {
+    height: 0;
+}
+
+.toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* ========== Mode Switcher ========== */
+.mode-switcher {
+    display: flex;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 3px;
+    position: relative;
+    border: 1px solid var(--border-color);
+}
+
+.mode-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.mode-option i {
+    font-size: 13px;
+}
+
+.mode-option:hover:not(.active) {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.mode-option.active {
+    color: white;
+}
+
+.mode-indicator {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    height: calc(100% - 6px);
+    background: var(--primary);
+    border-radius: var(--radius-sm);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Display toggle buttons */
+.display-toggles {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    background: var(--bg-secondary);
+    padding: 3px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+}
+
+.btn-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-hint);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.btn-toggle:hover {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+}
+
+.btn-toggle.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+}
+
+.btn-toggle i {
+    font-size: 10px;
+}
+
+.btn-toggle:active {
+    transform: scale(0.96);
+}
+
+.info-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.bookmark-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: var(--warning);
+    color: white;
+    border-radius: var(--radius-full);
+    font-size: 9px;
+    font-weight: 700;
+    margin-left: 2px;
+    line-height: 1;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+#toggleBookmarkPanel {
+    position: relative;
+}
+
+#toggleBookmarkPanel .bookmark-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    margin-left: 0;
+}
+

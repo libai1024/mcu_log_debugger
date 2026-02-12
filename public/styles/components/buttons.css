@@ -1,0 +1,88 @@
+/* ========== Buttons ========== */
+button {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    outline: none;
+    user-select: none;
+    line-height: 1;
+}
+
+button:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--primary-light);
+}
+
+button:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-icon {
+    padding: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    border-radius: var(--radius-sm);
+    width: 32px;
+    height: 32px;
+}
+
+.btn-icon:hover:not(:disabled) {
+    background: var(--bg-hover);
+    color: var(--primary);
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-dark);
+}
+
+.btn-connect {
+    width: 100%;
+    padding: 8px;
+    background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+    color: white;
+    border: none;
+    font-weight: 700;
+    font-size: 12px;
+    margin-top: 4px;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    border-radius: var(--radius-md);
+    height: 34px;
+}
+
+.btn-connect.connected {
+    background: linear-gradient(135deg, var(--error) 0%, var(--error-dark) 100%);
+}
+
+.btn-danger-icon {
+    color: var(--error);
+}
+
+.btn-danger-icon:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.1);
+}
+

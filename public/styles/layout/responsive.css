@@ -1,0 +1,63 @@
+/* ========== Responsive ========== */
+@media (max-width: 1100px) {
+    .stat-label {
+        display: none;
+    }
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        width: 240px;
+    }
+
+    .display-toggles {
+        gap: 2px;
+    }
+
+    .btn-toggle span {
+        display: none;
+    }
+
+    .btn-toggle {
+        padding: 4px 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        max-width: none;
+        max-height: 40vh;
+    }
+
+    .main-container {
+        flex-direction: column;
+    }
+
+    .bookmark-panel {
+        width: 100%;
+        max-height: 30vh;
+    }
+
+    .stats-bar {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 6px 10px;
+        gap: 4px;
+    }
+
+    .qsearch {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .qsearch__input {
+        width: 100%;
+        flex: 1;
+    }
+
+    .toolbar-center {
+        display: none;
+    }
+}
+
