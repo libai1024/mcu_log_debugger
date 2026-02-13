@@ -608,11 +608,43 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button class="btn-text" id="btnShowReleaseNotes" style="margin-right: auto;">
+                    <i class="fas fa-info-circle"></i> 版本说明
+                </button>
                 <button class="btn-secondary" id="resetSettings">
                     <i class="fas fa-undo"></i> 恢复默认
                 </button>
                 <button class="btn-primary" id="saveSettings">
                     <i class="fas fa-save"></i> 保存设置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Release Notes Modal -->
+    <div class="modal-overlay" id="releaseNotesModal" style="display: none;">
+        <div class="modal-content" style="max-width: 860px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-bullhorn"></i> 版本更新公告</h2>
+                <button class="btn-close" id="closeReleaseNotes">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body release-notes-body release-notes-layout">
+                <aside class="release-notes-sidebar">
+                    <div class="release-notes-sidebar-title">历史公告</div>
+                    <div class="release-notes-list" id="releaseNotesList"></div>
+                </aside>
+                <section class="release-notes-content">
+                    <div class="release-notes-content-header">
+                        <span class="version-tag" id="releaseNotesVersion">-</span>
+                    </div>
+                    <div class="release-notes-markdown" id="releaseNotesContent"></div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="confirmReleaseNotes">
+                    <i class="fas fa-check"></i> 我知道了
                 </button>
             </div>
         </div>

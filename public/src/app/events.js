@@ -234,9 +234,129 @@ export function setupEventListeners() {
   // Close dropdown when clicking outside
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#levelMultiselect')) {
-      levelDropdown?.classList.remove('show');
-      levelTrigger?.classList.remove('active');
+      levelMultiselect?.classList.remove('open');
     }
+  });
+
+  // Release notes modal
+  const releaseNotesModal = document.getElementById('releaseNotesModal');
+  const btnShowReleaseNotes = document.getElementById('btnShowReleaseNotes');
+  const closeReleaseNotes = document.getElementById('closeReleaseNotes');
+  const confirmReleaseNotes = document.getElementById('confirmReleaseNotes');
+
+  const openReleaseNotes = () => {
+    if (releaseNotesModal) releaseNotesModal.style.display = 'flex';
+  };
+
+  const hideReleaseNotes = () => {
+    if (releaseNotesModal) releaseNotesModal.style.display = 'none';
+  };
+
+  const renderMarkdownToHtml = (md) => {
+    // Minimal markdown renderer (no external deps)
+    // Supports: headings (#/##/###), unordered lists (-/*), code blocks ```
+    let html = md
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    // Code blocks
+    html = html.replace(/```([\s\S]*?)```/g, (m, code) => {
+      return `<pre><code>${code.trim()}</code></pre>`;
+    });
+
+    // Headings
+    html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+
+    // Bold
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    // Unordered lists
+    html = html.replace(/^(?:\s*[-*]\s.+\n)+/gm, (block) => {
+      const items = block
+        .trim()
+        .split(/\n/)
+        .map((line) => line.replace(/^\s*[-*]\s+/, '').trim())
+        .filter(Boolean)
+        .map((item) => `<li>${item}</li>`)
+        .join('');
+      return `<ul>${items}</ul>`;
+    });
+
+    // Paragraphs (remaining lines)
+    html = html
+      .split(/\n{2,}/)
+      .map((p) => {
+        const t = p.trim();
+        if (!t) return '';
+        if (t.startsWith('<h') || t.startsWith('<ul') || t.startsWith('<pre')) return t;
+        return `<p>${t.replace(/\n/g, '<br/>')}</p>`;
+      })
+      .join('\n');
+
+    return html;
+  };
+
+  const loadReleaseNotes = async () => {
+    try {
+      const { invoke, hasTauri } = await import('../services/tauriClient.js');
+      if (!hasTauri()) {
+        return [];
+      }
+      const notes = await invoke('get_all_release_notes');
+      return Array.isArray(notes) ? notes : [];
+    } catch (e) {
+      console.error('加载版本公告失败:', e);
+      return [];
+    }
+  };
+
+  const renderReleaseNotesUI = (notes) => {
+    const listEl = document.getElementById('releaseNotesList');
+    const versionEl = document.getElementById('releaseNotesVersion');
+    const contentEl = document.getElementById('releaseNotesContent');
+    if (!listEl || !versionEl || !contentEl) return;
+
+    listEl.innerHTML = '';
+
+    const setActive = (idx) => {
+      const note = notes[idx];
+      if (!note) return;
+
+      Array.from(listEl.querySelectorAll('.release-notes-item')).forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+      });
+
+      versionEl.textContent = note.version || '-';
+      contentEl.innerHTML = renderMarkdownToHtml(note.content || '');
+    };
+
+    notes.forEach((note, idx) => {
+      const item = document.createElement('div');
+      item.className = 'release-notes-item';
+      item.textContent = note.version || `v${idx}`;
+      item.addEventListener('click', () => setActive(idx));
+      listEl.appendChild(item);
+    });
+
+    if (notes.length > 0) setActive(0);
+    else {
+      versionEl.textContent = '-';
+      contentEl.innerHTML = '<p>暂无版本公告</p>';
+    }
+  };
+
+  btnShowReleaseNotes?.addEventListener('click', async () => {
+    openReleaseNotes();
+    const notes = await loadReleaseNotes();
+    renderReleaseNotesUI(notes);
+  });
+  closeReleaseNotes?.addEventListener('click', hideReleaseNotes);
+  confirmReleaseNotes?.addEventListener('click', hideReleaseNotes);
+  releaseNotesModal?.addEventListener('click', (e) => {
+    if (e.target === releaseNotesModal) hideReleaseNotes();
   });
 
   // Display option checkboxes

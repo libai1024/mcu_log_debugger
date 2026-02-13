@@ -22,6 +22,7 @@ fn main() {
             commands::serial::connect_serial,
             commands::serial::disconnect_serial,
             commands::storage::save_log_file,
+            commands::storage::get_all_release_notes,
             commands::settings::get_save_path,
             commands::settings::set_save_path
         ])

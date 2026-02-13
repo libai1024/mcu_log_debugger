@@ -1,0 +1,33 @@
+[
+  {
+    "version": "v2.0.2",
+    "date": "2026-02-12",
+    "channel": "stable",
+    "notes_path": "v2.0.2/RELEASE_NOTES.md"
+  },
+  {
+    "version": "v2.0.0-beta",
+    "date": "2026-02-12",
+    "channel": "beta",
+    "notes_path": "v2.0.0-beta/RELEASE_NOTES.md"
+  },
+  {
+    "version": "v1.0.2",
+    "date": "",
+    "channel": "stable",
+    "notes_path": "v1.0.2/RELEASE_NOTES.md"
+  },
+  {
+    "version": "v1.0.1",
+    "date": "",
+    "channel": "stable",
+    "notes_path": "v1.0.1/RELEASE_NOTES.md"
+  },
+  {
+    "version": "v1.0.0",
+    "date": "",
+    "channel": "stable",
+    "notes_path": "v1.0.0/RELEASE_NOTES.md"
+  }
+]
+

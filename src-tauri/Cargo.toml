@@ -1,6 +1,6 @@
 [package]
 name = "mcu-log-debugger"
-version = "2.0.1"
+version = "2.0.2"
 description = "MCU Log Debugger - 串口日志调试助手"
 authors = ["MCU Log Team"]
 license = "MIT"
